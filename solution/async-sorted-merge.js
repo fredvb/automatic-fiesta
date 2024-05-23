@@ -20,7 +20,7 @@ module.exports = async (logSources, printer) => {
 		// print the earliest log entry
 		printer.print(currentLogs[earliestLogIndex])
 
-		// reload next logs
+		// popAsync next log entry from the source and update currentLogs array
 		currentLogs[earliestLogIndex] = await logSources[earliestLogIndex].popAsync()
 
 		// check if all log sources are drained
