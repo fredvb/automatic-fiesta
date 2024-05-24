@@ -1,9 +1,31 @@
 "use strict";
 
-// Print all entries, across all of the *async* sources, in chronological order.
+const { getEarliestLogIndex, isAllDrained } = require('./utils')
 
-module.exports = (logSources, printer) => {
-  return new Promise((resolve, reject) => {
-    resolve(console.log("Async sort complete."));
-  });
-};
+// Print all entries, across all of the *async* sources, in chronological order.
+module.exports = async (logSources, printer) => {
+	let currentLogs = []
+
+	// tracking if all the log sources is drained
+	let allDrained = false
+
+	// Initialize current logs for each source
+	for (const source of logSources) {
+		currentLogs.push(await source.popAsync())
+	}
+
+	while (!allDrained) {
+		const earliestLogIndex = getEarliestLogIndex(currentLogs)
+
+		// print the earliest log entry
+		printer.print(currentLogs[earliestLogIndex])
+
+		// popAsync next log entry from the source and update currentLogs array
+		currentLogs[earliestLogIndex] = await logSources[earliestLogIndex].popAsync()
+
+		// check if all log sources are drained
+		allDrained = isAllDrained(logSources)
+	}
+
+	return console.log("Async sort complete.")
+}
