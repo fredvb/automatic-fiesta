@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
-const LogSource = require("../lib/log-source");
-const Printer = require("../lib/printer");
-const OrderedSourcesAsyncIterator = require("./OrderedSourcesAsyncIterator");
-// const MinHeap = require("./MinHeap");
+const LogSource = require('../lib/log-source');
+const Printer = require('../lib/printer');
+const LogSourcePrefetchBuffer = require('./LogSourcePrefetchBuffer');
+const OrderedSourcesAsyncIterator = require('./OrderedSourcesAsyncIterator');
 
 /**
  * Print all entries, across all of the *async* sources, in chronological order.
@@ -11,6 +11,11 @@ const OrderedSourcesAsyncIterator = require("./OrderedSourcesAsyncIterator");
  * @param {Printer} printer
  */
 module.exports = async (logSources, printer) => {
+  // Wrap all logSources in a LogSourcePrefetchBuffer
+  logSources = logSources.map((source) => {
+    return new LogSourcePrefetchBuffer(source, 10, 10, 30);
+  });
+
   // create our log sources iterator.
   const entriesIterator = new OrderedSourcesAsyncIterator(
     logSources,
@@ -24,5 +29,5 @@ module.exports = async (logSources, printer) => {
   }
   printer.done();
 
-  console.log("Async sort complete.");
+  console.log('Async sort complete.');
 };
